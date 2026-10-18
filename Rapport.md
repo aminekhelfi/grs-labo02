@@ -237,19 +237,19 @@ Une liste d'accès standard n'autorise que la machine Windows. Elle est ensuite 
 
 ```bash
 configure terminal
-access-list 10 permit host 192.168.201.100
-access-list 10 deny any log
-snmp-server community ciscoRO RO 10
-snmp-server community ciscoRW RW 10
+access-list 25 permit host 192.168.201.100
+access-list 25 deny any log
+snmp-server community ciscoRO RO 25
+snmp-server community ciscoRW RW 25
 end
 write memory
 ```
 
-- `access-list 10 permit host 192.168.201.100` autorise uniquement la console snmpB.
-- `access-list 10 deny any log` refuse toute autre source et journalise les tentatives refusées. Un `deny any` implicite existe déjà, mais le rendre explicite permet d'ajouter `log`.
+- `access-list 25 permit host 192.168.201.100` autorise uniquement la console snmpB.
+- `access-list 25 deny any log` refuse toute autre source et journalise les tentatives refusées. Un `deny any` implicite existe déjà, mais le rendre explicite permet d'ajouter `log`.
 - Le numéro d'ACL ajouté à la fin des commandes `snmp-server community` applique ce filtrage aux requêtes SNMP utilisant ces communautés.
 
-Vérification : `show access-lists 10` affiche le nombre de correspondances pour chaque règle.
+Vérification : `show access-lists 25` affiche le nombre de correspondances pour chaque règle.
 
 ## 2.2.3 Poste de travail Linux
 

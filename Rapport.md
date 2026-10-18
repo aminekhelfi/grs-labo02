@@ -2,7 +2,8 @@
 
 ## Laboratoire #2 - SNMP
 
-**Étudiant :** Amine Khelfi, Ledda Anthony
+**Étudiants :** Amine Khelfi, Ledda Anthony
+
 **Date :** 18.10.2026
 
 | Machine | Rôle | Adresse IP |
@@ -108,7 +109,7 @@ Adresse IP du routeur (`show ip interface brief`) : `192.168.201.102` sur Gigabi
 
 ### Question 5
 
-`sysObjectID` est l'identifiant du type d'équipement, attribué par le constructeur. Il indique à la console SNMP **quel modèle de matériel ou de logiciel** elle gère (« what kind of box »). Cette valeur est un OID de la branche privée `enterprises` (`1.3.6.1.4.1`). Dans cette branche, chaque constructeur reçoit de l'IANA un numéro unique, sous lequel il organise ses propres identifiants.
+`sysObjectID` est l'identifiant du type d'équipement, attribué par le constructeur. Il indique à la console SNMP **quel modèle de matériel ou de logiciel**. Cette valeur est un OID de la branche privée `enterprises` (`1.3.6.1.4.1`). Dans cette branche, chaque constructeur reçoit de l'IANA un numéro unique, sous lequel il organise ses propres identifiants.
 
 La valeur retournée, `enterprises.9.1.1537`, correspond à l'OID complet `1.3.6.1.4.1.9.1.1537` :
 
@@ -137,7 +138,7 @@ Requête GET de `sysName` envoyée au routeur avec snmpB. L'échange se compose 
 - **PDU :** `get-request (0)`.
 - **request-id :** `6558`. Cet identifiant permet d'associer la réponse à la requête.
 - **error-status / error-index :** `0`, toujours nuls dans une requête.
-- **variable-bindings :** un seul objet, `1.3.6.1.2.1.1.5.0` (sysName.0, le `.0` désignant l'instance d'un objet scalaire), avec la valeur `Null`. La console demande la valeur et n'en fournit donc aucune.
+- **variable-bindings :** un seul objet, `1.3.6.1.2.1.1.5.0`, avec la valeur `Null`, car la console demande la valeur et n'en fournit aucune.
 
 **Trame 10 : get-response (Cisco → Windows)**
 
@@ -148,9 +149,7 @@ Requête GET de `sysName` envoyée au routeur avec snmpB. L'échange se compose 
 - **PDU :** `get-response (2)`, avec le même **request-id** `6558` que la requête.
 - **error-status :** `noError (0)`, la requête a abouti.
 - **variable-bindings :** `1.3.6.1.2.1.1.5.0` = `"GRS_rtr"` (OctetString), soit le nom actuel du routeur.
-- Temps de réponse : environ **2 ms**.
 
-Les trames ARP qui précèdent servent à résoudre l'adresse MAC de la passerelle. Elles ne font pas partie de l'échange SNMP.
 
 ### Question 7
 
@@ -176,7 +175,6 @@ Modification de `sysName` avec snmpB (opération *Set*). La requête utilise la 
 - **request-id :** `6559`, identique à celui de la requête.
 - **error-status :** `noError (0)`, la modification est acceptée.
 - **variable-bindings :** `sysName.0` = `"routeur-amine"`. L'agent renvoie la valeur écrite pour confirmer l'opération.
-- Temps de réponse : environ **0,6 s**, nettement plus long que pour le GET, puisque l'agent modifie la configuration.
 
 > **Remarque :** par erreur, le routeur a été nommé `routeur-amine` au lieu de `router-amine` comme demandé dans l'énoncé. Cela ne change rien à l'échange observé : seule la valeur de la chaîne transmise diffère.
 
@@ -255,11 +253,7 @@ Vérification : `show access-lists 25` affiche le nombre de correspondances pour
 
 ### Question 11
 
-Après l'installation de `snmpd` (`sudo apt update && sudo apt install snmpd`), la configuration se trouve dans le fichier `/etc/snmp/snmpd.conf` :
-
-```bash
-sudo nano /etc/snmp/snmpd.conf
-```
+Après l'installation de `snmpd` (`sudo apt update && sudo apt install snmpd`), la configuration se trouve dans le fichier `/etc/snmp/snmpd.conf`.
 
 Lignes ajoutées ou modifiées :
 
@@ -278,6 +272,10 @@ view   all    included   .1
 # Communauté v2c en lecture seule, limitée à la VM Windows
 rocommunity  grs-read-only  192.168.201.100   -V all
 ```
+
+Configuration effective sur la VM (commentaires et lignes vides masqués) :
+
+![Q11 - Configuration effective de snmpd](Q11.png)
 
 Redémarrage du service, activation au démarrage et vérification :
 
@@ -307,15 +305,13 @@ L'agent retourne le nom du système (`Linux`), le nom d'hôte (`grs-srv`) et la 
 
 MIBs ajoutées dans `C:\Program Files (x86)\SnmpB\mibs` puis chargées dans snmpB (onglet *Modules*) :
 
-MIBs chargées :
-
 - `CISCO-FLASH-MIB` : la MIB principale, qui décrit la mémoire flash ;
 - ses dépendances : `CISCO-SMI`, `ENTITY-MIB`, `INET-ADDRESS-MIB`, `HCNUM-TC`, `CISCO-QOS-PIB-MIB` ;
 - `CISCO-PRODUCTS-MIB`, pour traduire le `sysObjectID` (Question 5).
 
 ![Q13 - MIBs chargées dans snmpB](Q13.png)
 
-**Démarche :** chez Cisco, les objets de la mémoire flash sont définis dans `CISCO-FLASH-MIB`. Après avoir chargé ce module dans snmpB, le champ *Requires* de l'onglet *Modules* affiche en rouge les modules qui manquent. Je les ai ajoutés un par un, jusqu'à ce qu'il n'en manque plus aucun. Les MIBs standards (`SNMPv2-SMI`, `SNMPv2-TC`, etc.) étaient déjà fournies avec snmpB. Toutes les autres viennent du dépôt officiel de Cisco : <https://github.com/cisco/cisco-mibs/tree/main>.
+**Démarche :** chez Cisco, les objets de la mémoire flash sont définis dans `CISCO-FLASH-MIB`. Après avoir chargé ce module dans snmpB, le champ *Requires* de l'onglet *Modules* affiche en rouge les modules qui manquent. Nous les avons ajoutées une par une, jusqu'à ce qu'il n'en manque plus aucune. Les MIBs standards (`SNMPv2-SMI`, `SNMPv2-TC`, etc.) étaient déjà fournies avec snmpB. Toutes les autres viennent du dépôt officiel de Cisco : <https://github.com/cisco/cisco-mibs/tree/main>.
 
 ### Question 14
 
@@ -351,7 +347,7 @@ L'index `x.y.z` se lit ainsi : numéro du périphérique flash, numéro de la pa
 
 ### Question 15
 
-L'utilisateur est créé avec la directive `createUser`. Elle se place dans le fichier persistant de snmpd, `/var/lib/snmp/snmpd.conf`, que snmpd lit au démarrage. Au premier démarrage, snmpd remplace cette ligne par les clés localisées (ligne `usmUser`), si bien que les mots de passe ne restent pas stockés en clair.
+snmpd ne crée pas les utilisateurs v3 dans `/etc/snmp/snmpd.conf`, mais dans son fichier de données persistant `/var/lib/snmp/snmpd.conf`. On y écrit une directive `createUser` pendant que le service est arrêté. Au lancement suivant, snmpd lit cette directive, en déduit les clés d'authentification et de chiffrement propres à son EngineID, puis efface la ligne d'origine et la remplace par une entrée `usmUser`. Les deux mots de passe n'apparaissent donc plus sur le disque après le premier démarrage.
 
 ```bash
 # 1. Arrêter snmpd (sinon il réécrit le fichier persistant à l'arrêt)
@@ -367,7 +363,7 @@ Ligne ajoutée (authentification HMAC-SHA, chiffrement AES) :
 createUser grs-ro-user SHA secret-password AES secret-key
 ```
 
-Dans `/etc/snmp/snmpd.conf`, l'utilisateur reçoit un accès en lecture seule, avec le niveau de sécurité **authPriv** obligatoire :
+La création du compte ne suffit pas : il faut encore lui donner des droits. C'est le rôle de la directive `rouser` dans `/etc/snmp/snmpd.conf`. Elle autorise `grs-ro-user` à lire seulement, et l'option `authpriv` fait rejeter toute requête de ce compte qui ne serait pas à la fois authentifiée et chiffrée :
 
 ```bash
 sudo nano /etc/snmp/snmpd.conf
@@ -389,9 +385,6 @@ sudo grep -E "usmUser|createUser" /var/lib/snmp/snmpd.conf
 
 # 5. Vérifier la ligne rouser
 sudo grep rouser /etc/snmp/snmpd.conf
-
-# 6. Tester localement en SNMPv3 authPriv
-snmpget -v3 -l authPriv -u grs-ro-user -a SHA -A secret-password -x AES -X secret-key localhost 1.3.6.1.2.1.1.5.0
 ```
 
 ### Question 16
@@ -434,8 +427,6 @@ snmpget -v2c -c grs-read-only localhost 1.3.6.1.2.1.1.5.0
 snmpget -v3 -l authPriv -u grs-ro-user -a SHA -A secret-password -x AES -X secret-key localhost 1.3.6.1.2.1.1.5.0
 ```
 
-Dans snmpB, le profil USM `grs-ro-user` est créé (SHA / `secret-password`, AES128 / `secret-key`). Le profil `Ubuntu` passe ensuite en SNMPv3, avec ce *Security Name* et le niveau `authPriv`.
-
 ### Question 17
 
 Requête `sysName` envoyée au poste Linux en SNMPv3 (authPriv) depuis snmpB :
@@ -450,11 +441,19 @@ Requête `sysName` envoyée au poste Linux en SNMPv3 (authPriv) depuis snmpB :
 
 ![Q17 - Réponse SNMPv3](Q17-2.png)
 
-**Changements importants par rapport à SNMPv2c, du point de vue de la sécurité :**
+**Ce qui change par rapport aux captures v2c (Q6 et Q7) :**
 
-- **Plus de communauté en clair.** Le champ `community` est remplacé par un utilisateur USM (`msgUserName: grs-ro-user`). Il n'y a plus de secret lisible dans la capture.
-- **PDU chiffrée (AES).** Le contenu du message est remplacé par un `encryptedPDU` illisible, et Wireshark affiche `privKey Unknown`. On ne voit plus ni l'opération, ni l'OID, ni la valeur retournée.
-- **Authentification et intégrité (HMAC-SHA).** Les `msgFlags` indiquent `Authenticated` et `Encrypted`, ce qui correspond au niveau authPriv. Le champ `msgAuthenticationParameters` contient le code HMAC : un message modifié ou forgé est rejeté.
-- **Anti-rejeu.** Les champs `EngineBoots` et `EngineTime` permettent de refuser les messages trop anciens.
+En v2c, la capture montrait tout en clair : la communauté, l'OID et la réponse `"GRS_rtr"`. En v3 :
 
-Restent visibles : les adresses IP, les ports, le nom d'utilisateur et l'EngineID.
+1. **Le mot de passe ne circule plus.** Le champ `community` disparaît. Le message ne contient que le nom d'utilisateur (`grs-ro-user`) et un code HMAC-SHA calculé à partir du mot de passe.
+2. **Le contenu est chiffré.** La PDU devient un bloc `encryptedPDU` (AES). Wireshark affiche `privKey Unknown`, donc on ne voit ni l'OID ni la valeur.
+3. **Un message modifié est rejeté.** Le HMAC couvre tout le message. Les `msgFlags` à `0x03` (Authenticated + Encrypted) confirment le niveau authPriv.
+4. **Un message ancien est refusé.** `EngineBoots` et `EngineTime` empêchent de rejouer une requête capturée.
+
+Restent lisibles : les adresses IP, les ports, le nom d'utilisateur et l'EngineID.
+
+---
+
+# Utilisation de l'IA
+
+Une IA générative a été utilisée comme aide ponctuelle : relecture du rapport et reformulation de certaines explications. Les configurations, les manipulations et les captures ont été réalisées par nous sur l'infrastructure du laboratoire.
